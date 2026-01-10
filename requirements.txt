@@ -15,16 +15,14 @@ importlib_metadata==8.7.1
 itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
-narwhals @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_d1hwnfxjem/croot/narwhals_1742845967052/work
 ndlib==5.1.1
 nest-asyncio==1.6.0
 netdispatch==0.1.0
-networkx @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_networkx_1765215107/work
+networkx>=3.2
 numpy==2.4.0
-packaging @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_95hd3yozva/croot/packaging_1753775365688/work
 pandas==2.3.3
 pillow==12.0.0
-plotly @ file:///home/conda/feedstock_root/build_artifacts/plotly_1763430243473/work
+plotly>=5.18
 python-dateutil==2.9.0.post0
 python-igraph==1.0.0
 pytz==2025.2
