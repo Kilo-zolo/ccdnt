@@ -1,3 +1,4 @@
+import os
 from __future__ import annotations
 import math
 from dash import Dash, dcc, html, Input, Output, State
@@ -240,4 +241,4 @@ def update_fig(_, topology_label, n_log, seed_log, influence_log, iters, mc_runs
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 8050)))
