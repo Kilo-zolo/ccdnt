@@ -21,5 +21,8 @@ def cascade_size_monte_carlo(
         )
         init_cascade = run_custom_cascade(graph, cascade_information)
         init_timeseries = cascade_timeseries(init_cascade, graph.number_of_nodes())
-        sizes.append(float(init_timeseries["total_infected"].iloc[-1]))
+        if len(init_timeseries) > 0:
+            sizes.append(float(init_timeseries["total_responses"].sum()))
+        else:
+            sizes.append(0.0)
     return np.array(sizes, dtype=float)

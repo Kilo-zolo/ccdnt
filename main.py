@@ -1,106 +1,189 @@
 from __future__ import annotations
-
 import math
-from config import DEFAULT_NET_TOPOLOGIES, NetTopologyConfig, CascadeConfig
-from builders import dashboard_builders
 from dash import Dash, dcc, html, Input, Output, State
 
+from config import DEFAULT_NET_TOPOLOGIES, NetTopologyConfig, CascadeConfig
+from builders import dashboard_builders
+
 app = Dash(__name__)
-app.title = "Cascade Topology Demo"
+app.title = "CascadeSim — Information Diffusion Lab"
 
 app.layout = html.Div(
-    style={"fontFamily": "Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif", "padding": "16px"},
+    style={
+        "background": "radial-gradient(circle at top, #0f172a, #020617)",
+        "minHeight": "100vh",
+        "color": "#e5e7eb",
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "padding": "16px",
+    },
     children=[
-        html.H2("Comparative Cascade Dynamics Across Network Topologies", style={"marginBottom": "6px"}),
-        html.Div(
-            "Animated cascades + structure metrics + distributions — ER / WS / BA / Holme–Kim",
-            style={"opacity": 0.8, "marginBottom": "16px"},
-        ),
+        html.H2("CascadeSim", style={"marginBottom": "4px"}),
+        html.Div("Information Diffusion Lab", style={"opacity": 0.7}),
+        html.Hr(),
 
         html.Div(
-            style={"display": "flex", "gap": "12px", "flexWrap": "wrap", "alignItems": "end"},
+            style={"display": "flex", "gap": "16px", "flexWrap": "wrap"},
             children=[
-                html.Div(
-                    children=[
-                        html.Label("Topology"),
-                        dcc.Dropdown(
-                            id="topology",
-                            options=[{"label": k, "value": k} for k in DEFAULT_NET_TOPOLOGIES.keys()],
-                            value="Barbasi-Albert",
-                            clearable=False,
-                            style={"width": "280px"},
-                        ),
-                    ]
-                ),
-                html.Div(
-                    children=[
-                        html.Label("Nodes (n)"),
-                        dcc.Slider(id="n", min=400, max=2500, step=100, value=1200, marks=None, tooltip={"placement": "bottom"}),
-                    ],
-                    style={"width": "280px"},
-                ),
-                html.Div(
-                    children=[
-                        html.Label("Initial infected fraction"),
-                        dcc.Slider(id="seed_frac", min=0.001, max=0.05, step=0.001, value=0.01, marks=None, tooltip={"placement": "bottom"}),
-                    ],
-                    style={"width": "280px"},
-                ),
-                html.Div(
-                    children=[
-                        html.Label("Influence prob per edge"),
-                        dcc.Slider(id="influence", min=0.005, max=0.25, step=0.005, value=0.05, marks=None, tooltip={"placement": "bottom"}),
-                    ],
-                    style={"width": "280px"},
-                ),
-                html.Div(
-                    children=[
-                        html.Label("Iterations"),
-                        dcc.Slider(id="iters", min=20, max=200, step=10, value=60, marks=None, tooltip={"placement": "bottom"}),
-                    ],
-                    style={"width": "280px"},
-                ),
-                html.Div(
-                    children=[
-                        html.Label("Cascade MC runs"),
-                        dcc.Slider(id="mc_runs", min=5, max=60, step=5, value=25, marks=None, tooltip={"placement": "bottom"}),
-                    ],
-                    style={"width": "280px"},
-                ),
-                html.Button("Recompute", id="recompute", n_clicks=0, style={"height": "38px", "padding": "0 14px"}),
-            ],
-        ),
-
-        html.Div(style={"height": "14px"}),
-
-        html.Div(
-            style={"display": "grid", "gridTemplateColumns": "1fr 320px", "gap": "12px", "alignItems": "start"},
-            children=[
-                dcc.Graph(id="dash-fig", config={"displayModeBar": False}),
                 html.Div(
                     style={
-                        "border": "1px solid rgba(0,0,0,0.1)",
-                        "borderRadius": "12px",
-                        "padding": "12px",
-                        "boxShadow": "0 1px 10px rgba(0,0,0,0.04)",
+                        "width": "320px",
+                        "background": "#020617",
+                        "padding": "16px",
+                        "borderRadius": "16px",
+                        "boxShadow": "0 10px 40px rgba(0,0,0,0.5)",
                     },
                     children=[
-                        html.H4("Topology Summary", style={"marginTop": 0}),
-                        html.Div(id="metrics-table"),
+                        html.H4("Network Topology"),
+
+                        dcc.Dropdown(
+                            id="topology",
+                            options=[{"label": k, "value": k} for k in DEFAULT_NET_TOPOLOGIES],
+                            value="Barbasi-Albert",
+                            clearable=False,
+                            style={
+                                "backgroundColor": "#e5e7eb",
+                                "color": "#020617",
+                            },
+                        ),
+
                         html.Hr(),
-                        html.Div(
-                            [
-                                html.H4("Notes", style={"marginTop": 0}),
-                                html.Ul(
-                                    [
-                                        html.Li("BA/HK: hubs ⇒ faster global cascades (when hubs get infected)."),
-                                        html.Li("WS/HK: clustering ⇒ local bursts + community jumps."),
-                                        html.Li("ER: more uniform spread; needs enough connectivity/probability."),
-                                    ]
+
+                        html.Label("Network Size (log)", style={"opacity": 0.85}),
+                        dcc.Slider(
+                            id="n_log",
+                            min=1,
+                            max=3,
+                            step=0.01,
+                            value=2,
+                            marks={1: "10", 2: "100", 3: "1000"},
+                        ),
+
+                        html.Label("Initial Broadcaster Fraction (log)", style={"opacity": 0.85}),
+                        dcc.Slider(
+                            id="seed_log",
+                            min=-3,
+                            max=-1,
+                            step=0.05,
+                            value=-2,
+                            marks={-3: "0.001", -2: "0.01", -1: "0.1"},
+                        ),
+
+                        html.Label("Influence Probability (log)", style={"opacity": 0.85}),
+                        dcc.Slider(
+                            id="influence_log",
+                            min=-3,
+                            max=-0.5,
+                            step=0.05,
+                            value=-1,
+                            marks={-3: "0.001", -2: "0.01", -1: "0.1"},
+                        ),
+
+                        html.Label("Iterations", style={"opacity": 0.85}),
+                        dcc.Slider(id="iters", min=20, max=200, step=10, value=60),
+
+                        html.Label("Monte Carlo Runs", style={"opacity": 0.85}),
+                        dcc.Slider(id="mc_runs", min=5, max=60, step=5, value=20),
+
+                        html.Br(),
+                        html.Button(
+                            "Run Simulation",
+                            id="recompute",
+                            n_clicks=0,
+                            style={
+                                "width": "100%",
+                                "background": "#2563eb",
+                                "border": "none",
+                                "padding": "10px",
+                                "borderRadius": "10px",
+                                "color": "white",
+                                "fontWeight": 600,
+                                "cursor": "pointer",
+                            },
+                        ),
+                    ],
+                ),
+
+                html.Div(
+                    style={"flex": 1},
+                    children=[
+                        dcc.Tabs(
+                            value="tab-cascade",
+                            colors={
+                                "border": "#020617",
+                                "primary": "#2563eb",
+                                "background": "#020617",
+                            },
+                            children=[
+                                dcc.Tab(
+                                    label="Animated Cascade",
+                                    value="tab-cascade",
+                                    style={
+                                        "backgroundColor": "#020617",
+                                        "color": "#9ca3af",
+                                        "padding": "10px",
+                                        "fontWeight": 500,
+                                    },
+                                    selected_style={
+                                        "backgroundColor": "#020617",
+                                        "color": "#e5e7eb",
+                                        "padding": "10px",
+                                        "fontWeight": 600,
+                                        "borderBottom": "2px solid #2563eb",
+                                    },
+                                    children=[
+                                        dcc.Graph(
+                                            id="cascade-fig",
+                                            config={"displayModeBar": False},
+                                            style={"height": "82vh"},
+                                        )
+                                    ],
+                                ),
+                                dcc.Tab(
+                                    label="Analysis & Metrics",
+                                    value="tab-analysis",
+                                    style={
+                                        "backgroundColor": "#020617",
+                                        "color": "#9ca3af",
+                                        "padding": "10px",
+                                        "fontWeight": 500,
+                                    },
+                                    selected_style={
+                                        "backgroundColor": "#020617",
+                                        "color": "#e5e7eb",
+                                        "padding": "10px",
+                                        "fontWeight": 600,
+                                        "borderBottom": "2px solid #2563eb",
+                                    },
+                                    children=[
+                                        html.Div(
+                                            style={
+                                                "display": "grid",
+                                                "gridTemplateColumns": "repeat(auto-fit, minmax(320px, 1fr))",
+                                                "gap": "12px",
+                                                "marginTop": "12px",
+                                            },
+                                            children=[
+                                                dcc.Graph(id="dynamics-fig", config={"displayModeBar": False}),
+                                                dcc.Graph(id="degree-fig", config={"displayModeBar": False}),
+                                                dcc.Graph(id="mc-fig", config={"displayModeBar": False}),
+                                            ],
+                                        ),
+                                        html.Div(
+                                            style={
+                                                "marginTop": "16px",
+                                                "background": "#020617",
+                                                "padding": "16px",
+                                                "borderRadius": "16px",
+                                            },
+                                            children=[
+                                                html.H4("Topology Summary"),
+                                                html.Div(id="metrics-table"),
+                                            ],
+                                        ),
+                                    ],
                                 ),
                             ],
-                            style={"opacity": 0.85},
-                        ),
+                        )
                     ],
                 ),
             ],
@@ -108,56 +191,52 @@ app.layout = html.Div(
     ],
 )
 
-
 @app.callback(
-    Output("dash-fig", "figure"),
+    Output("cascade-fig", "figure"),
+    Output("dynamics-fig", "figure"),
+    Output("degree-fig", "figure"),
+    Output("mc-fig", "figure"),
     Output("metrics-table", "children"),
     Input("recompute", "n_clicks"),
     State("topology", "value"),
-    State("n", "value"),
-    State("seed_frac", "value"),
-    State("influence", "value"),
+    State("n_log", "value"),
+    State("seed_log", "value"),
+    State("influence_log", "value"),
     State("iters", "value"),
     State("mc_runs", "value"),
 )
-def update_fig(_, topology_label, n, seed_frac, influence, iters, mc_runs):
+def update_fig(_, topology_label, n_log, seed_log, influence_log, iters, mc_runs):
+
+    n = int(round(10 ** n_log))
+    seed_frac = 10 ** seed_log
+    influence = 10 ** influence_log
+
     base = DEFAULT_NET_TOPOLOGIES[topology_label]
-
-    # copy + patch n
-    topo_cfg = NetTopologyConfig(**{**base.__dict__, "nodes": int(n)})
-
-    # small safety clamps
-    if topo_cfg.name in ("BA", "HK"):
-        topo_cfg.no_linked_edges = max(1, min(topo_cfg.no_linked_edges, topo_cfg.nodes - 1))
-    if topo_cfg.name == "WS":
-        topo_cfg.no_linked_nodes = max(2, min(topo_cfg.no_linked_nodes, topo_cfg.nodes - 1))
-        if topo_cfg.no_linked_nodes % 2 == 1:
-            topo_cfg.no_linked_nodes += 1
+    topo_cfg = NetTopologyConfig(**{**base.__dict__, "nodes": n})
 
     cas_cfg = CascadeConfig(
-        fraction_infected=float(seed_frac),
-        influence_probability=float(influence),
+        fraction_infected=seed_frac,
+        influence_probability=influence,
         iterations=int(iters),
         seed=42,
     )
 
-    fig, metrics = dashboard_builders.build_dashboard(topology_label, topo_cfg, cas_cfg, runs=int(mc_runs))
+    cascade_fig, dynamics_fig, degree_fig, mc_fig, metrics = dashboard_builders.build_dashboard(
+        topology_label, topo_cfg, cas_cfg, runs=int(mc_runs)
+    )
 
-    # pretty metrics
     rows = []
     for k, v in metrics.items():
-        if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
-            sval = "n/a"
-        else:
-            sval = f"{v:.4g}" if isinstance(v, float) else str(v)
+        sval = "n/a" if isinstance(v, float) and not math.isfinite(v) else f"{v:.4g}"
         rows.append(html.Tr([html.Td(k), html.Td(sval)]))
 
     table = html.Table(
-        [html.Thead(html.Tr([html.Th("Metric"), html.Th("Value")]))] + [html.Tbody(rows)],
+        [html.Thead(html.Tr([html.Th("Metric"), html.Th("Value")]))]
+        + [html.Tbody(rows)],
         style={"width": "100%", "borderCollapse": "collapse"},
     )
 
-    return fig, table
+    return cascade_fig, dynamics_fig, degree_fig, mc_fig, table
 
 
 if __name__ == "__main__":

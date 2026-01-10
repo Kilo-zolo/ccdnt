@@ -25,6 +25,27 @@ def draw_edge(graph: nx.Graph, loc: Dict[int, Tuple[float, float]], max_edges: i
         name="edges"
     )
 
+def draw_active_edges(
+    active_edges,
+    loc,
+    color="#1f4fd8",
+    width=2.0
+):
+    x, y = [], []
+
+    for u, v in active_edges:
+        x += [loc[u][0], loc[v][0], None]
+        y += [loc[u][1], loc[v][1], None]
+
+    return go.Scatter(
+        x=x,
+        y=y,
+        mode="lines",
+        line=dict(color=color, width=width),
+        hoverinfo="none",
+        name="active_edges",
+    )
+
 def draw_node(
         graph: nx.Graph,
         loc: Dict[int, Tuple[float, float]],
@@ -83,7 +104,7 @@ def update_colors_per_frame(graph: nx.Graph, iterations: List[dict]) -> Tuple[Li
             go.Frame(
                 name=str(iter_no),
                 data=[go.Scatter(marker=dict(color=colors))], # only update node marker colors
-                layout=go.Layout(title=f"Information Cascade Model - iteration {iter_no} | S={susceptible}, I={infected}, R={removed}")
+                layout=go.Layout(title=f"Information Cascade Model - iteration {iter_no} | broadcasters={infected}, responders={removed}")
             )
         )
     return frames, colors

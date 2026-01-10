@@ -26,34 +26,65 @@ def compute_lcc(graph: nx.Graph) -> nx.Graph:
     return undirected_graph.subgraph(sorted_connections[0]).copy()
 
 def graph_metrics(graph: nx.Graph) -> Dict[str, float]:
+    """
+    Graph-level structural metrics oriented toward hub emergence and
+    attention concentration (not SIR diffusion).
+    """
     undirected_graph = graph.to_undirected() if graph.is_directed() else graph
-    lcc = compute_lcc(undirected_graph)
 
-    # number of edges connected to each node
-    degrees = [degree for _, degree in undirected_graph.degree()]
-    avg_degree = float(np.mean(degrees)) if degrees else 0.0
+    n = undirected_graph.number_of_nodes()
+    m = undirected_graph.number_of_edges()
 
-    # average number of clusters in the graph
-    avg_cluster = nx.average_clustering(undirected_graph) if undirected_graph.number_of_nodes() > 2 else 0.0
+    if n == 0:
+        return {}
 
+    degrees = np.array([d for _, d in undirected_graph.degree()], dtype=float)
+
+    avg_degree = float(degrees.mean()) if n > 0 else 0.0
+    max_degree = float(degrees.max()) if n > 0 else 0.0
+
+    # ---- Degree inequality (hub dominance proxy) ----
+    # Gini coefficient over degree distribution
+    if avg_degree > 0:
+        degree_gini = float(
+            np.abs(degrees[:, None] - degrees).sum()
+            / (2 * n * n * avg_degree)
+        )
+    else:
+        degree_gini = 0.0
+
+    # ---- Hub share ----
+    # Fraction of all edges incident to the top-k nodes
+    k = max(1, int(0.01 * n))  # top 1%
+    top_k_degrees = np.sort(degrees)[-k:]
+    hub_edge_share = float(top_k_degrees.sum() / (2 * m)) if m > 0 else 0.0
+
+    # ---- Clustering (local reinforcement potential) ----
+    avg_clustering = (
+        float(nx.average_clustering(undirected_graph))
+        if n > 2
+        else 0.0
+    )
+
+    # ---- Degree assortativity (rich-get-richer vs egalitarian growth) ----
     try:
-        avg_short_path_len = nx.average_shortest_path_length(lcc) if lcc.number_of_nodes() > 2 else float("nan")
-    except Exception:
-        avg_short_path_len = float("nan")
-
-    try:
-        assortativity = nx.degree_assortativity_coefficient(undirected_graph) if undirected_graph.number_of_nodes() > 2 else float("nan")
+        assortativity = (
+            float(nx.degree_assortativity_coefficient(undirected_graph))
+            if n > 2
+            else float("nan")
+        )
     except Exception:
         assortativity = float("nan")
 
-    return{
-        "number of nodes": float(undirected_graph.number_of_nodes()),
-        "number of links": float(undirected_graph.number_of_edges()),
-        "average number of links per node": avg_degree,
-        "average number of clusters in the graph": float(avg_cluster), 
-        "average path length": float(avg_short_path_len),
-        "assortativity": float(assortativity),
-        "length of largest connected component": float(lcc.number_of_nodes())
+    return {
+        "nodes": float(n),
+        "edges": float(m),
+        "avg_degree": avg_degree,
+        "max_degree": max_degree,
+        "degree_gini": degree_gini,
+        "top_1pct_edge_share": hub_edge_share,
+        "avg_clustering": avg_clustering,
+        "degree_assortativity": assortativity,
     }
 
 

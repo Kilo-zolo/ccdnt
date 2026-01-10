@@ -29,6 +29,8 @@ def run_custom_cascade(
     for iteration in range(cascade.iterations):
         new_broadcasters: set[int] = set()
         reacting_nodes: set[int] = set()
+        active_edges = set()
+        broadcaster_impacts = {}
         
         for node in nodes:
             # decay BOTH reacting and broadcasting back to idle each tick
@@ -37,6 +39,7 @@ def run_custom_cascade(
 
         for node in broadcasting_nodes:
             base_node_state[node] = broadcasting
+            broadcaster_impacts[node] = 0
 
             activity = graph.nodes[node].get("activity", 0.0)
             influence = graph.nodes[node].get("influence", 0.0)
@@ -49,6 +52,8 @@ def run_custom_cascade(
                 # local attention horizon, caps nodes from being attached to entire network
                 if random.random() < influence:
                     reacting_nodes.add(neighbor)
+                    broadcaster_impacts[node] += 1
+                    active_edges.add((node, neighbor))
                 
                     # promote to broadcaster only if node reacts
                     if random.random() < 0.15:
@@ -69,7 +74,9 @@ def run_custom_cascade(
 
         history.append({
             "iteration": iteration,
-            "status": node_status
+            "status": node_status,
+            "broadcaster_impacts": broadcaster_impacts,
+            "active_edges": list(active_edges)
         })
     
     return history

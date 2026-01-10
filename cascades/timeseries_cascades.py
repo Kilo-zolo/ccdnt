@@ -3,36 +3,35 @@ import pandas as pd
 
 def cascade_timeseries(iterations: List[dict], nodes: int) -> pd.DataFrame:
     
-    current_node_state: Dict[int, int] = {}
-    infected_counts = []
-    iteration_number = []
+    rows = []
+
 
     # Count nodes that ever reacted or broadcasted
     total_reach: set[int] = set()
 
     for iteration in iterations:
-        iter_num = int(iteration.get("iteration", len(iteration_number)))
-        
-        # information on state of nodes within the specific iteration
-        iteration_state = iteration.get("status", {}) or {}
+        iter_num = int(iteration.get("iteration"))
+        impacts = iteration.get("broadcaster_impacts", {}) or {}
 
-        for node, state in iteration_state.items():
-            current_node_state[node] = state
-            if state in (1, 2):
-                total_reach.add(node)
-        
-        iteration_number.append(iter_num)
-        infected_counts.append(len(total_reach))
-    
-    # Metrics to compute and display
-    
-    # iteration value and total infected up to that iteration
-    df = pd.DataFrame({"iter": iteration_number, "total_infected": infected_counts})
-    
-    # fraction of total infected over all nodes
-    df["proportion_infected"] = df["total_infected"] / max(1, nodes)
-    
-    # nodes infected within this iteration
-    df["recently_infected"] = df["total_infected"].diff().fillna(df["total_infected"])
+        if impacts:
+            values = list(impacts.values())
+            rows.append({
+                "iteration_number": iter_num,
+                "number_of_broadcasters": len(values),
+                "mean_responses": sum(values) / len(values),
+                "max_responses": max(values),
+                "standard_deviation": pd.Series(values).std(ddof=0),
+                "total_responses": sum(values)
+            })
+        else:
+            rows.append({
+                "iteration_number": iter_num,
+                "number_of_broadcasters": 0,
+                "mean_responses": 0,
+                "max_responses": 0,
+                "standard_deviation": 0,
+                "total_responses": 0
+            })
+    df = pd.DataFrame(rows)
     
     return df
