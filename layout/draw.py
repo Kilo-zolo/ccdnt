@@ -51,9 +51,9 @@ def draw_node(
             cmin=0,
             cmax=2,
             colorscale=[
-                [0.00, "#bdbdbd"],  # S
-                [0.50, "#e74c3c"],  # I
-                [1.00, "#2c3e50"],  # R
+                [0.00, "#bdbdbd"],  # idle
+                [0.50, "#e74c3c"],  # broadcasting
+                [1.00, "#8e44ad"],  # reacting
             ],
             line=dict(width=0)
         ),

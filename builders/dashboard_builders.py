@@ -21,10 +21,13 @@ def build_dashboard(
 ) -> Tuple[go.Figure, Dict[str, float]]:
     
     graph = build_graph(net_topology_config)
+    
+    degrees = dict(graph.degree())
+    max_degree = max(degrees.values()) if degrees else 1
 
     for node in graph.nodes():
-        graph.nodes[node]["activity"] = cascade_config.activity_rate
-        graph.nodes[node]["influence"] = cascade_config.influence_probability
+        graph.nodes[node]["activity"] = 0.2 + 0.8 * (degrees[node] / max_degree)
+        graph.nodes[node]["influence"] = 0.02 + 0.08 * (degrees[node] / max_degree)
 
     metrics = graph_metrics(graph)
 

@@ -7,9 +7,8 @@ def cascade_timeseries(iterations: List[dict], nodes: int) -> pd.DataFrame:
     infected_counts = []
     iteration_number = []
 
-    # In the Cascading model, status codes typically: 0 susceptible, 1 infected, 2 removed (depending on model)
-    # We'll treat "infected" as state == 1, and count how many ever became infected or removed.
-    ever_infected: set[int] = set()
+    # Count nodes that ever reacted or broadcasted
+    total_reach: set[int] = set()
 
     for iteration in iterations:
         iter_num = int(iteration.get("iteration", len(iteration_number)))
@@ -20,10 +19,10 @@ def cascade_timeseries(iterations: List[dict], nodes: int) -> pd.DataFrame:
         for node, state in iteration_state.items():
             current_node_state[node] = state
             if state in (1, 2):
-                ever_infected.add(node)
+                total_reach.add(node)
         
         iteration_number.append(iter_num)
-        infected_counts.append(len(ever_infected))
+        infected_counts.append(len(total_reach))
     
     # Metrics to compute and display
     

@@ -10,56 +10,67 @@ def run_custom_cascade(
     random.seed(cascade.seed)
     np.random.seed(cascade.seed)
 
-    # choose nodes at random to attempt to infect neighbors
+    idle, broadcasting, reacting = 0, 1, 2
+
     nodes = list(graph.nodes())
-    initial_count = int(len(nodes) * cascade.fraction_infected)
-    active_nodes = set(np.random.choice(nodes, size=initial_count, replace=False))
+
+    # set no. of initial influencers in system
+    initial_influencer_count = max(1, int(len(nodes) * cascade.fraction_infected))
+
+    # choose broadcasting nodes at random
+    broadcasting_nodes = set(np.random.choice(nodes, size=initial_influencer_count, replace=False))
+
+    # baseline state of all nodes
+    base_node_state = {node: idle for node in nodes}
     
     # var to store all iters node statuses and info
     history: List[dict] = []
 
     for iteration in range(cascade.iterations):
-        activated_nodes = set(active_nodes)
-        newly_infected: set[int] = set()
-
-        for node in active_nodes:
-            # node activity chance
-            activity_strength = graph.nodes[node].get("activity", 0.0)
-            
-            # if rng roll has a higher rate than activity strength, node does not attempt to influence
-            if random.random() > activity_strength:
-                continue
-
-            # get initial influence strength of node
-            influence_strength = graph.nodes[node].get("influence", 0.0)
-
-            # attempt to infect neighbors that have not already been activated
-            for neighbour in graph.neighbors(node):
-                if neighbour in activated_nodes:
-                    continue
-                
-                # add weight to each edge (difficulty of infecting neighbors)
-                edge_weight = float(graph.edges[node, neighbour].get("weight", 1.0))
-                
-                # probability to infect neighbors
-                infection_probability = influence_strength * edge_weight
-
-                # stochastic influence - if rng roll is less than p, neighbour is influenced
-                if random.random() < infection_probability:
-                    activated_nodes.add(neighbour)
-                    newly_infected.add(neighbour)
+        new_broadcasters: set[int] = set()
+        reacting_nodes: set[int] = set()
         
-        # preferential amplification - incrementaly increase the influence strength of node
-        for node in newly_infected:
-            graph.nodes[node]["influence"] *= (1 + CascadeConfig.preferential_amplification)
+        for node in nodes:
+            # decay BOTH reacting and broadcasting back to idle each tick
+            if base_node_state[node] in (broadcasting, reacting):
+                base_node_state[node] = idle
 
-        # record history
-        node_status = {node: 1 for node in activated_nodes} # 1 = active
+        for node in broadcasting_nodes:
+            base_node_state[node] = broadcasting
+
+            activity = graph.nodes[node].get("activity", 0.0)
+            influence = graph.nodes[node].get("influence", 0.0)
+
+            if random.random() > activity:
+                continue
+            
+            for neighbor in graph.neighbors(node):
+                
+                # local attention horizon, caps nodes from being attached to entire network
+                if random.random() < influence:
+                    reacting_nodes.add(neighbor)
+                
+                    # promote to broadcaster only if node reacts
+                    if random.random() < 0.15:
+                        new_broadcasters.add(neighbor)
+        
+        for node in reacting_nodes:
+            if base_node_state[node] != broadcasting:
+                base_node_state[node] = reacting
+            
+        # broadcasters decay after info burst
+        broadcasting_nodes = (new_broadcasters | {n for n in broadcasting_nodes if random.random() < 0.4})
+        if not broadcasting_nodes:
+            broadcasting_nodes = set(np.random.choice(nodes, size=initial_influencer_count, replace=False))
+
+        
+        # record snapshot
+        node_status = base_node_state.copy()
+
         history.append({
             "iteration": iteration,
             "status": node_status
         })
-        active_nodes = activated_nodes
     
     return history
 
