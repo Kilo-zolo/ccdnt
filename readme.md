@@ -11,7 +11,7 @@ The application is built with **Dash and Plotly**, powered by **NetworkX**, and 
 ## Features
 
 ### Network Topologies
-https://github.com/kilo-zolo/ccdnt/raw/main/assets/network_topologies.mp4
+![Network topology diffusion](assets/network_topologies.gif)
 - **Erdős–Rényi (ER)** — random graphs
 - **Watts–Strogatz (WS)** — small-world networks
 - **Barabási–Albert (BA)** — scale-free networks
