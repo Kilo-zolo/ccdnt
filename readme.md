@@ -300,7 +300,7 @@ If the app does not start after a reasonable wait, or something appears wrong, f
 
 ---
 
-## Intended Extensions
+## Future Work
 
 * Threshold-based adoption models
 * Memory and fatigue effects
