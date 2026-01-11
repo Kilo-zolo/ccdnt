@@ -8,7 +8,7 @@ The application is built with **Dash and Plotly**, powered by **NetworkX**, and 
 
 ---
 
-## ✨ Features
+## Features
 
 ### Network Topologies
 - **Erdős–Rényi (ER)** — random graphs
@@ -44,7 +44,7 @@ The application is built with **Dash and Plotly**, powered by **NetworkX**, and 
 
 ---
 
-## 🧠 Conceptual Focus
+## Conceptual Focus
 
 CascadeSim is **not** a classical SIR or epidemic diffusion model.
 
@@ -63,7 +63,7 @@ This makes it suitable for studying:
 
 ---
 
-## 🏗 Project Structure
+## Project Structure
 
 ```text
 .
@@ -89,7 +89,7 @@ This makes it suitable for studying:
 
 ---
 
-## ⚙️ Installation
+## Installation
 
 ### 1. Clone the repository
 
@@ -130,7 +130,7 @@ http://localhost:8050
 
 ---
 
-## Cascade Model (Mathematical Description – GitHub-safe)
+## Cascade Model
 
 ### Network
 
@@ -310,7 +310,7 @@ If the app does not start after a reasonable wait, or something appears wrong, f
 
 ---
 
-## 📜 License
+## License
 
 MIT License — free to use, modify, and extend for research and educational purposes.
 ---
