@@ -11,6 +11,7 @@ The application is built with **Dash and Plotly**, powered by **NetworkX**, and 
 ## Features
 
 ### Network Topologies
+https://github.com/kilo-zolo/ccdnt/raw/main/assets/network_topologies.mp4
 - **Erdős–Rényi (ER)** — random graphs
 - **Watts–Strogatz (WS)** — small-world networks
 - **Barabási–Albert (BA)** — scale-free networks
@@ -308,9 +309,4 @@ If the app does not start after a reasonable wait, or something appears wrong, f
 * GNN-based cascade prediction
 * Early-warning indicators for super-spreading events
 
----
-
-## License
-
-MIT License — free to use, modify, and extend for research and educational purposes.
 ---
