@@ -1,56 +1,58 @@
 # CascadeSim — Information Diffusion Lab
 
-CascadeSim is an interactive simulation and visual analytics tool for exploring **information diffusion and attention cascades across network topologies**.  
-It is designed to study how **network structure, hubs, and local clustering** shape the spread, amplification, and decay of information over time.
+CascadeSim is an interactive simulation and visual analytics tool for exploring **information diffusion and attention cascades across network topologies**.
 
-The app is built with **Dash + Plotly**, powered by **NetworkX**, and supports animated cascades, structural metrics, and Monte Carlo analysis.
+It is designed to investigate how **network structure, hubs, and local clustering** shape the spread, amplification, and decay of information over time.
 
----
-
-## Features
-
-- **Multiple network topologies**
-  - Erdős–Rényi (random graphs)
-  - Watts–Strogatz (small-world networks)
-  - Barabási–Albert (scale-free networks)
-  - Holme–Kim (scale-free with triadic closure)
-
-- **Custom cascade model**
-  - Broadcasting → reacting → decay dynamics
-  - Node-level activity and influence
-  - Degree-dependent amplification (hub effects)
-  - Stochastic attention and triadic spread
-
-- **Interactive controls**
-  - Network size (log scale)
-  - Initial broadcaster fraction (log scale)
-  - Influence probability (log scale)
-  - Iterations and Monte Carlo runs
-
-- **Visual outputs**
-  - Animated network cascade
-  - Temporal response dynamics
-  - Degree distributions (log–log)
-  - Monte Carlo cascade size distributions
-
-- **Structural metrics**
-  - Degree inequality (Gini)
-  - Hub dominance (top 1% edge share)
-  - Clustering coefficient
-  - Degree assortativity
-  - Graph size and density indicators
+The application is built with **Dash and Plotly**, powered by **NetworkX**, and supports animated cascades, structural metrics, and Monte Carlo analysis.
 
 ---
 
-## Conceptual Focus
+## ✨ Features
 
-CascadeSim is **not** a classical SIR epidemic model.
+### Network Topologies
+- **Erdős–Rényi (ER)** — random graphs
+- **Watts–Strogatz (WS)** — small-world networks
+- **Barabási–Albert (BA)** — scale-free networks
+- **Holme–Kim (HK)** — scale-free networks with triadic closure
+
+### Cascade Model
+- Broadcasting → reacting → decay dynamics
+- Node-level **activity** and **influence**
+- Degree-dependent amplification (hub effects)
+- Stochastic, non-absorbing information flow
+
+### Interactive Controls
+- Network size (log scale)
+- Initial broadcaster fraction (log scale)
+- Influence probability (log scale)
+- Iteration count
+- Monte Carlo run count
+
+### Visual Outputs
+- Animated network cascade
+- Temporal broadcaster–responder dynamics
+- Degree distributions (log–log)
+- Monte Carlo cascade size distributions
+
+### Structural Metrics
+- Average and maximum degree
+- Degree inequality (Gini coefficient)
+- Hub dominance (top 1% edge share)
+- Average clustering coefficient
+- Degree assortativity
+
+---
+
+## 🧠 Conceptual Focus
+
+CascadeSim is **not** a classical SIR or epidemic diffusion model.
 
 Instead, it models:
-- **Attention propagation**
-- **Information bursts**
-- **Hub-driven amplification**
-- **Local reinforcement via clustering**
+- Attention propagation
+- Bursty information spread
+- Hub-driven amplification
+- Local reinforcement via clustering
 
 This makes it suitable for studying:
 - Social media virality
@@ -61,7 +63,7 @@ This makes it suitable for studying:
 
 ---
 
-## Project Structure
+## 🏗 Project Structure
 
 ```text
 .
@@ -83,6 +85,9 @@ This makes it suitable for studying:
 │   └── draw.py                 # Plotly rendering helpers
 │
 └── README.md
+````
+
+---
 
 ## ⚙️ Installation
 
@@ -107,11 +112,11 @@ source venv/bin/activate  # macOS / Linux
 pip install -r requirements.txt
 ```
 
-Python ≥ **3.9** is recommended.
+Python **3.9 or higher** is recommended.
 
 ---
 
-## ▶️ Running the App
+## Running the App
 
 ```bash
 python main.py
@@ -125,121 +130,125 @@ http://localhost:8050
 
 ---
 
-## Mathematical Formulation of the Cascade Model
+## Cascade Model (Mathematical Description – GitHub-safe)
 
-Let the network be a graph:
+### Network
 
-[
-G = (V, E), \quad |V| = N
-]
+* Graph: `G = (V, E)`
+* Number of nodes: `N = |V|`
+* Node degree: `k_i` for node `i`
 
-Each node ( i \in V ) has:
+Each node `i` has:
 
-* Degree ( k_i )
-* Activity level ( a_i \in [0,1] )
-* Influence probability ( \beta_i \in [0,1] )
+* Activity level: `a_i ∈ [0, 1]`
+* Influence probability: `β_i ∈ [0, 1]`
+
+---
 
 ### Node States
 
-At discrete time ( t ), each node has a state:
-[
-s_i(t) \in {0, 1, 2}
-]
+At iteration `t`, each node has a state:
 
-* ( 0 ): idle
-* ( 1 ): broadcasting
-* ( 2 ): reacting
+```
+s_i(t) ∈ {0, 1, 2}
 
----
-
-### Initial Conditions
-
-A fraction ( f_0 ) of nodes is selected uniformly at random as broadcasters:
-[
-|B(0)| = \max(1, \lfloor f_0 N \rfloor)
-]
-
-All other nodes begin in the idle state.
+0 = idle
+1 = broadcasting
+2 = reacting
+```
 
 ---
 
-### Degree-Weighted Activity and Influence
+### Initial Seeding
 
-Node parameters are assigned as:
+A fraction `f₀` of nodes is selected uniformly at random as broadcasters:
 
-[
-a_i = a_{\min} + (a_{\max} - a_{\min}) \cdot \frac{k_i}{\max_j k_j}
-]
+```
+|B(0)| = max(1, floor(f₀ · N))
+```
 
-[
-\beta_i = \beta_{\min} + (\beta_{\max} - \beta_{\min}) \cdot \frac{k_i}{\max_j k_j}
-]
+All other nodes start in the idle state.
 
-This induces **hub-amplified attention dynamics** without enforcing preferential attachment during diffusion.
+---
+
+### Degree-Weighted Parameters
+
+Node activity and influence scale linearly with degree:
+
+```
+a_i = a_min + (a_max − a_min) · (k_i / max_j k_j)
+β_i = β_min + (β_max − β_min) · (k_i / max_j k_j)
+```
+
+This introduces **hub-amplified attention dynamics** without enforcing preferential attachment during diffusion.
 
 ---
 
 ### Cascade Dynamics (Per Iteration)
 
-For each time step ( t = 1, \dots, T ):
+For each iteration `t = 1 … T`:
 
 #### 1. Broadcaster Activation
 
-Each broadcasting node ( i \in B(t) ) becomes active with probability:
-[
-\mathbb{P}(\text{active}_i) = a_i
-]
+Each broadcasting node `i ∈ B(t)` becomes active with probability:
+
+```
+P(active_i) = a_i
+```
+
+Inactive broadcasters do not emit influence.
 
 ---
 
 #### 2. Influence Transmission
 
-For an active broadcaster ( i ), each neighbour ( j \in \mathcal{N}(i) ) reacts with probability:
-[
-\mathbb{P}(j \text{ reacts}) = \beta_i
-]
+For an active broadcaster `i`, each neighbour `j ∈ N(i)` reacts with probability:
 
-Successful reactions set:
-[
-s_j(t) \leftarrow 2
-]
+```
+P(j reacts) = β_i
+```
 
-Active edges are recorded for visualisation.
+If successful:
+
+```
+s_j(t) = reacting
+```
+
+Active edges `(i, j)` are recorded for visualisation.
 
 ---
 
 #### 3. Promotion to Broadcaster
 
-Each reacting node is promoted with probability:
-[
-\mathbb{P}(j \rightarrow \text{broadcast}) = p_{\text{promote}}
-]
+Each reacting node is promoted to broadcaster with probability:
 
-(Currently ( p_{\text{promote}} = 0.15 ))
+```
+P(promote) = 0.15
+```
 
 ---
 
 #### 4. Decay Dynamics
 
-Broadcasting nodes persist with probability:
-[
-\mathbb{P}(i \in B(t+1) \mid i \in B(t)) = p_{\text{retain}}
-]
+Existing broadcasters persist with probability:
 
-(Currently ( p_{\text{retain}} = 0.4 ))
+```
+P(retain broadcaster) = 0.4
+```
 
-All other active nodes decay back to idle.
+All other broadcasting and reacting nodes decay back to idle.
 
 ---
 
 #### 5. Re-seeding
 
 If no broadcasters remain:
-[
-|B(t+1)| = 0
-]
 
-A new seed set of size ( \lfloor f_0 N \rfloor ) is introduced to maintain non-absorbing dynamics.
+```
+|B(t+1)| = 0
+```
+
+A new seed set of size `floor(f₀ · N)` is introduced to prevent absorbing states.
 
 ---
 
@@ -247,36 +256,28 @@ A new seed set of size ( \lfloor f_0 N \rfloor ) is introduced to maintain non-a
 
 At each iteration:
 
-* Number of broadcasters:
-  [
-  B(t) = |{ i : s_i(t) = 1 }|
-  ]
-
-* Total responses:
-  [
-  R(t) = \sum_{i \in B(t)} \sum_{j \in \mathcal{N}(i)} \mathbb{I}_{\text{reaction}}
-  ]
-
-* Maximum single-node response
-
+* Number of broadcasters: `|B(t)|`
+* Total responses: sum of all neighbour reactions
+* Maximum single-node response (hub dominance proxy)
 * Response variance across broadcasters
 
 ---
 
 ### Monte Carlo Cascade Size
 
-For run ( r ):
+For Monte Carlo run `r`:
 
-[
-S_r = \sum_{t=1}^{T} R_r(t)
-]
+```
+S_r = sum over t of total_responses(t)
+```
 
 Normalised cascade size:
-[
-\hat{S}_r = \frac{S_r}{N}
-]
 
-The distribution ( { \hat{S}_r } ) captures cascade volatility and structural sensitivity.
+```
+Ŝ_r = S_r / N
+```
+
+The distribution `{Ŝ_r}` captures cascade volatility and structural sensitivity.
 
 ---
 
@@ -286,7 +287,7 @@ A live deployment is available at:
 
 👉 **[https://cascadesim.onrender.com/](https://cascadesim.onrender.com/)**
 
-**Note**
+**Notes**
 
 * Hosted on Render’s **free tier**
 * Cold starts may take **30–60 seconds**
@@ -312,7 +313,4 @@ If the app does not start after a reasonable wait, or something appears wrong, f
 ## 📜 License
 
 MIT License — free to use, modify, and extend for research and educational purposes.
-
-```
-
 ---
