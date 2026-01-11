@@ -43,7 +43,7 @@ def graph_metrics(graph: nx.Graph) -> Dict[str, float]:
     avg_degree = float(degrees.mean()) if n > 0 else 0.0
     max_degree = float(degrees.max()) if n > 0 else 0.0
 
-    # ---- Degree inequality (hub dominance proxy) ----
+    # Degree inequality (hub dominance proxy)
     # Gini coefficient over degree distribution
     if avg_degree > 0:
         degree_gini = float(
@@ -53,20 +53,20 @@ def graph_metrics(graph: nx.Graph) -> Dict[str, float]:
     else:
         degree_gini = 0.0
 
-    # ---- Hub share ----
+    # Hub share
     # Fraction of all edges incident to the top-k nodes
     k = max(1, int(0.01 * n))  # top 1%
     top_k_degrees = np.sort(degrees)[-k:]
     hub_edge_share = float(top_k_degrees.sum() / (2 * m)) if m > 0 else 0.0
 
-    # ---- Clustering (local reinforcement potential) ----
+    # Clustering (local reinforcement potential)
     avg_clustering = (
         float(nx.average_clustering(undirected_graph))
         if n > 2
         else 0.0
     )
 
-    # ---- Degree assortativity (rich-get-richer vs egalitarian growth) ----
+    # Degree assortativity (rich-get-richer vs egalitarian growth)
     try:
         assortativity = (
             float(nx.degree_assortativity_coefficient(undirected_graph))

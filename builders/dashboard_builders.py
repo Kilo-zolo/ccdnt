@@ -26,9 +26,6 @@ def build_dashboard(
     runs: int,
 ) -> Tuple[go.Figure, go.Figure, go.Figure, go.Figure, Dict[str, float]]:
 
-    # -------------------------------------------------
-    # Build graph
-    # -------------------------------------------------
     graph = build_graph(net_topology_config)
 
     degrees = dict(graph.degree())
@@ -40,18 +37,12 @@ def build_dashboard(
 
     metrics = graph_metrics(graph)
 
-    # -------------------------------------------------
-    # Layout + cascade
-    # -------------------------------------------------
     loc = compute_layout(graph, seed=cascade_config.seed)
 
     iterations = run_custom_cascade(graph, cascade_config)
     time_series = cascade_timeseries(iterations, graph.number_of_nodes())
     sizes = cascade_size_monte_carlo(graph, cascade_config, runs=runs)
 
-    # -------------------------------------------------
-    # Animated Cascade Figure (WHITE)
-    # -------------------------------------------------
     static_edges = draw_edge(graph, loc, max_edges=6000)
 
     active_edges_trace = go.Scatter(
@@ -133,9 +124,6 @@ def build_dashboard(
     cascade_fig.update_xaxes(showgrid=False, zeroline=False, showticklabels=False)
     cascade_fig.update_yaxes(showgrid=False, zeroline=False, showticklabels=False)
 
-    # -------------------------------------------------
-    # Dynamics Figure (WHITE)
-    # -------------------------------------------------
     dynamics_fig = go.Figure()
     dynamics_fig.add_trace(
         go.Scatter(
@@ -163,9 +151,6 @@ def build_dashboard(
     dynamics_fig.update_xaxes(showgrid=True, gridcolor="rgba(0,0,0,0.05)")
     dynamics_fig.update_yaxes(showgrid=True, gridcolor="rgba(0,0,0,0.05)")
 
-    # -------------------------------------------------
-    # Degree Distribution (WHITE)
-    # -------------------------------------------------
     deg_vals = np.array([d for _, d in graph.degree()], dtype=float)
     degree_counts = pd.Series(deg_vals).value_counts().sort_index()
 
@@ -189,9 +174,6 @@ def build_dashboard(
     degree_fig.update_xaxes(showgrid=True, gridcolor="rgba(0,0,0,0.05)")
     degree_fig.update_yaxes(showgrid=True, gridcolor="rgba(0,0,0,0.05)")
 
-    # -------------------------------------------------
-    # Monte Carlo Histogram (WHITE)
-    # -------------------------------------------------
     mc_fig = go.Figure()
     mc_fig.add_trace(
         go.Histogram(
